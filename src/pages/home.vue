@@ -2,7 +2,8 @@
   <div class="home">
     <div class="header">
     <img src="../assets/logo.svg" alt="logo ubereats" />
-    <input class="search" type="text" placeholder="De quoi avez vous envie ?"/>
+    <input class="search" v-model="userSearchRestaurant"
+           type="text" placeholder="De quoi avez vous envie ?"/>
     </div>
     <div class="banniere" />
     <restaurant-row v-for="(data, index) in dataRestaurant" :key="index" :rowRestaurant="data"/>
@@ -16,7 +17,7 @@ import BDD from "@/BDD";
 import {Restaurant} from "@/models/Restaurant";
 
 import RestaurantRow from "@/components/RestaurantRow";
-import {onMounted, ref} from "vue";
+import {onMounted, ref, watch} from "vue";
 
 export default {
   name: 'HomeComponent',
@@ -25,12 +26,15 @@ export default {
   },
 
   setup() {
+    let userSearchRestaurant = ref("");
     let dataRestaurant = ref([]);
-
+    let allRestaurants = [];
     const makeDataRestaurant = () => {
       let dataRow = []
       for (const restaurant of BDD) {
-        dataRow.push(new Restaurant(restaurant.name, restaurant.review, restaurant.image, restaurant.drive_time));
+        const rest = new Restaurant(restaurant.name, restaurant.review, restaurant.image, restaurant.drive_time)
+        dataRow.push(rest);
+        allRestaurants.push(rest);
         if (dataRow.length >= 3) {
           dataRestaurant.value.push(dataRow);
           dataRow = [];
@@ -39,10 +43,20 @@ export default {
       }
     };
 
+
+    watch(userSearchRestaurant, (newValue)=>{
+
+      const result = allRestaurants.filter(restaurant =>restaurant.name.toUpperCase().includes(newValue.toUpperCase()));
+      console.log(result);
+      console.log(dataRestaurant.value);
+      
+    })
     onMounted(makeDataRestaurant);
 
     return {
-      dataRestaurant
+      dataRestaurant,
+      userSearchRestaurant,
+      allRestaurants
     };
   }
 }
